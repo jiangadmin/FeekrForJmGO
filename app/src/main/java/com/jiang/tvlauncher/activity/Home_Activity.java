@@ -314,8 +314,8 @@ public class Home_Activity extends Base_Activity implements View.OnClickListener
         super.onResume();
 
         if (toolbar_show) {
-            AnimUtils.Y( toolbar_view, 0, -42);
-            AnimUtils.Y( titleview, -42, 0);
+            AnimUtils.Y(toolbar_view, 0, -42);
+            AnimUtils.Y(titleview, -42, 0);
             toolbar_view.setVisibility(View.GONE);
             toolbar_show = false;
         }
@@ -324,6 +324,7 @@ public class Home_Activity extends Base_Activity implements View.OnClickListener
 
     /**
      * 更新页面
+     *
      * @param channelList
      */
     public void updateshow(FindChannelList channelList) {
@@ -414,6 +415,7 @@ public class Home_Activity extends Base_Activity implements View.OnClickListener
 
     /**
      * 启动栏目
+     *
      * @param i
      */
     public void open(int i) {

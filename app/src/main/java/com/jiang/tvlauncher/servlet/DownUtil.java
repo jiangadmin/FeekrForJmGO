@@ -82,23 +82,19 @@ public class DownUtil {
                         if (fileName.contains(".apk")) {
                             LogUtil.e(TAG, "安装包");
 
-                            //是极米设备
-                            if (MyAppliaction.isxgimi) {
-                                //调用极米静默安装
-                                MyAppliaction.apiManager.set("setInstallApk", file.getPath(), null, null, null);
+                            //启动安装
 
-                            } else {
                                 Intent intent = new Intent(Intent.ACTION_VIEW);
                                 intent.setDataAndType(Uri.fromFile(file), "application/vnd.android.package-archive");
                                 activity.startActivity(intent);
-                            }
+
 
                         }
                         //如果是资源文件
                         if (fileName.contains(".zip")) {
                             LogUtil.e(TAG, "资源文件");
 
-                            MyAppliaction.apiManager.set("setBootStartPlayer", file.getPath(), null, null, null);
+
                         }
                     } catch (Exception e) {
                         LogUtil.e(TAG, "文件下载失败了" + e.getMessage());

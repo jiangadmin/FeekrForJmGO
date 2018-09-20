@@ -43,14 +43,10 @@ public class Timing_Servlet extends AsyncTask<String, Integer, MonitorResEntity>
         map.put("storage", FileUtils.getRomSize());
         map.put("memoryInfo", FileUtils.getAvailMemory());
         map.put("avaSpace", FileUtils.getFreeDiskSpaceS());
-        try {
-            map.put("cpuTemp", MyAppliaction.apiManager.get("getTemp", null, null));
-            map.put("fanSpeed", MyAppliaction.apiManager.get("getWindSpeed", null, null));
-        } catch (Exception e) {
-            e.printStackTrace();
+
             map.put("cpuTemp", "0");
             map.put("fanSpeed", "0");
-        }
+
         String res = HttpUtil.doPost(Const.URL + "dev/devRunStateController/monitorRunState.do", map);
         MonitorResEntity entity;
         if (res != null) {

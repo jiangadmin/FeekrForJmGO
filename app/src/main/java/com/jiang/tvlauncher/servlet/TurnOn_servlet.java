@@ -20,7 +20,10 @@ import com.jiang.tvlauncher.server.TimingService;
 import com.jiang.tvlauncher.utils.HttpUtil;
 import com.jiang.tvlauncher.utils.LogUtil;
 import com.jiang.tvlauncher.utils.SaveUtils;
+import com.jiang.tvlauncher.utils.SystemPropertiesProxy;
 import com.jiang.tvlauncher.utils.Tools;
+import com.jmgo.android.projector.JmgoCommonManager;
+import com.jmgo.android.projector.JmgoConfig;
 
 import org.greenrobot.eventbus.EventBus;
 
@@ -51,26 +54,12 @@ public class TurnOn_servlet extends AsyncTask<String, Integer, TurnOnEntity> {
         Map map = new HashMap();
         TurnOnEntity entity;
 
-        if (TextUtils.isEmpty(MyAppliaction.ID)) {
-            if (!TextUtils.isEmpty(SaveUtils.getString(Save_Key.SerialNum))) {
-                MyAppliaction.ID = SaveUtils.getString(Save_Key.SerialNum);
-                MyAppliaction.turnType = SaveUtils.getString(Save_Key.turnType);
-                MyAppliaction.modelNum = SaveUtils.getString(Save_Key.modelNum);
-            } else {
-                new TurnOn_servlet(context).execute();
-                entity = new TurnOnEntity();
-                entity.setErrorcode(-3);
-                entity.setErrormsg("数据缺失 再来一次");
-                return entity;
-            }
-        }
+        map.put("serialNum", JmgoCommonManager.getInstance("feekrs").getString(JmgoConfig.DLP, 0x50F19));         //设备号
+        map.put("turnType", MyAppliaction.turnType);    //开机方式
+        map.put("modelNum",  SystemPropertiesProxy.getString(context, "ro.product.name"));    //设备型号
 
-        map.put("serialNum", MyAppliaction.ID);
-        map.put("turnType", MyAppliaction.turnType);
-        map.put("modelNum", MyAppliaction.modelNum);
-
-        map.put("systemVersion", Build.VERSION.INCREMENTAL);
-        map.put("androidVersion", Build.VERSION.RELEASE);
+        map.put("systemVersion", Build.VERSION.INCREMENTAL);//固件版本
+        map.put("androidVersion", Build.VERSION.RELEASE);   //Android版本
 
         String res = HttpUtil.doPost(Const.URL + "dev/devTurnOffController/turnOn.do", map);
 
@@ -139,44 +128,6 @@ public class TurnOn_servlet extends AsyncTask<String, Integer, TurnOnEntity> {
                     }
                 }
 
-            String s = entity.getResult().getDevInfo().getZoomVal();
-            LogUtil.e(TAG, "梯形数据:" + s);
-
-            try {
-                //初始化设备名称
-                MyAppliaction.apiManager.set("setDeviceName", entity.getResult().getDevInfo().getModelNum(), null, null, null);
-
-                //初始化上电开机
-                if (entity.getResult().getShadowcnf() != null) {
-
-                    //投影方式开关
-                    if (entity.getResult().getShadowcnf().getProjectModeFlag() == 1) {
-                        MyAppliaction.apiManager.set("setProjectionMode", String.valueOf(entity.getResult().getShadowcnf().getProjectMode()), null, null, null);
-                    }
-
-                    //上电开机开关
-                    if (entity.getResult().getShadowcnf().getPowerFlag() == 1) {
-                        //上电开机
-                        if (entity.getResult().getShadowcnf().getPowerTurn() == 1) {
-                            MyAppliaction.apiManager.set("setPowerOnStart", "true", null, null, null);
-                        } else {
-                            MyAppliaction.apiManager.set("setPowerOnStart", "false", null, null, null);
-                        }
-                    }
-
-                    //梯形校正开关
-                    if (entity.getResult().getShadowcnf().getZoomFlag() == 1) {
-                        //初始化梯形数据
-                        Point point = new Gson().fromJson(s, Point.class);
-                        for (int i = 0; i < point.getPoint().size(); i++) {
-                            MyAppliaction.apiManager.set("setKeyStoneByPoint", point.getPoint().get(i).getIdx(), point.getPoint().get(i).getCurrent_x(), point.getPoint().get(i).getCurrent_y(), null);
-                        }
-                    }
-                }
-            } catch (Exception e) {
-                LogUtil.e(TAG, e.getMessage());
-            }
-
             //存储间隔时间
             if (entity.getResult().getShadowcnf() != null)
                 SaveUtils.setInt(Save_Key.Timming, entity.getResult().getShadowcnf().getMonitRate());
@@ -203,20 +154,7 @@ public class TurnOn_servlet extends AsyncTask<String, Integer, TurnOnEntity> {
 
                     //打开并设置热点信息.注意热点密码8-32位，只限制了英文密码位数。
                     //使用极米开启/关闭热点接口
-                    try {
-                        String s1 = MyAppliaction.apiManager.set("setOpenWifiAp", SSID, APPWD, null, null);
-                        if (!TextUtils.isEmpty(s1) && Boolean.valueOf(s1.toLowerCase())) {
-                            LogUtil.e(TAG, "热点开机成功！");
-                        }
-                    } catch (RemoteException e) {
-                        e.printStackTrace();
-                    }
-                } else if (entity.getResult().getShadowcnf().getHotPoint() == 0) {            //关闭热点
-                    try {
-                        MyAppliaction.apiManager.set("setCloseWifiAp", null, null, null, null);
-                    } catch (RemoteException e) {
-                        e.printStackTrace();
-                    }
+
                 }
             }
 
